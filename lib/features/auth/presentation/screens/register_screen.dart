@@ -6,6 +6,7 @@ import 'package:arven/core/widgets/shared_button.dart';
 import 'package:arven/core/widgets/shared_text_field.dart';
 import 'package:arven/features/auth/data/data%20source/auth_remote_data_source.dart';
 import 'package:arven/features/auth/data/models/register_request_model.dart';
+import 'package:arven/features/auth/presentation/screens/login_screen.dart';
 import 'package:dio/dio.dart'; 
 import 'package:flutter/material.dart';
 import 'package:arven/features/auth/presentation/screens/verify_email_screen.dart';
@@ -216,7 +217,10 @@ lastnameController.dispose();
                 children: [
                   const Text('Already have an account?'),
                   TextButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.pushReplacement(context, MaterialPageRoute(
+                        builder: (context)=> const LoginScreen()));
+                    },
                     child: const Text('Log In'),
                   ),
                 ],

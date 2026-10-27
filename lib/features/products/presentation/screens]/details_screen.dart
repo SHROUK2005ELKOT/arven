@@ -18,7 +18,7 @@ class DetailsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        appBar: CustomAppBar(),
+        appBar: const CustomAppBar(showBackButton: true),
         body: Padding(
           padding: const EdgeInsets.all(8),
           child: ListView(

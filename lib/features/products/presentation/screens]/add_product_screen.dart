@@ -1,172 +1,165 @@
-import 'package:arven/core/widgets/custom_appbar.dart';
-import 'package:arven/core/widgets/shared_button.dart'; 
-import 'package:arven/core/widgets/shared_text_field.dart'; 
+
+import 'package:arven/features/products/data/data_source/remote_data_source.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+
 class AddProductScreen extends StatefulWidget {
-   const AddProductScreen({super.key});
-@override 
-State<AddProductScreen> createState() => _AddProductScreenState(); }
-class _AddProductScreenState extends State<AddProductScreen> { 
+  const AddProductScreen({super.key});
 
-  final _formKey = GlobalKey<FormState>();
-final _sellerIdController = TextEditingController();
-final _nameController = TextEditingController(); 
-final _descriptionController = TextEditingController(); 
-final _arabicNameController = TextEditingController(); 
-final _arabicDescriptionController = TextEditingController(); 
-final _coverPictureUrlController = TextEditingController(); 
-final _priceController = TextEditingController(); 
-final _stockController = TextEditingController(); 
-final _weightController = TextEditingController(); 
-final _colorController = TextEditingController(); 
-final _discountController = TextEditingController(); 
-final _categoryIdsController = TextEditingController(); 
-final _productPicturesController = TextEditingController();
-@override
- void dispose() {
-   _sellerIdController.dispose();
-   _nameController.dispose(); 
-   _descriptionController.dispose(); 
-   _arabicNameController.dispose(); 
-   _arabicDescriptionController.dispose(); 
-   _coverPictureUrlController.dispose(); 
-   _priceController.dispose(); 
-   _stockController.dispose(); 
-   _weightController.dispose();
-   _colorController.dispose(); 
-   _discountController.dispose(); 
-   _categoryIdsController.dispose();
-   _productPicturesController.dispose();
-    super.dispose(); }
-
- String? _requiredValidator(String? value) {
-   if (value == null || value.trim().isEmpty) { 
-    return 'This field is required'; } 
-    return null; }
-
-void _submitForm() { if
- (!_formKey.currentState!.validate()
- ) return;
-
-ScaffoldMessenger.of(context).showSnackBar(
-  const SnackBar(
-    content: Text('All fields are valid!'),
-  ),
-);
+  @override
+  State<AddProductScreen> createState() => _AddProductScreenState();
 }
-@override Widget build(BuildContext context) { return SafeArea( child: Scaffold( appBar: CustomAppBar(), body: Form( key: _formKey, child: ListView( padding: const EdgeInsets.all(8), children: [ const SizedBox(height: 15),
-          const Center(
-            child: Text(
-              'ADD NEW PRODUCT',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
 
-          const SizedBox(height: 20),
+class _AddProductScreenState extends State<AddProductScreen> {
+  final formKey = GlobalKey<FormState>();
 
-          SharedTextField(
-            textFieldName: 'Seller ID',
-            hintTextField: 'Enter seller ID',
-            controller: _sellerIdController,
-            validator: _requiredValidator,
-          ),
+  final name = TextEditingController();
+  final description = TextEditingController();
+  final arabicName = TextEditingController();
+  final arabicDescription = TextEditingController();
+  final productCode = TextEditingController();
+  final color = TextEditingController();
+  final imageUrl = TextEditingController();
+  final price = TextEditingController();
+  final stock = TextEditingController();
+  final weight = TextEditingController();
 
-          SharedTextField(
-            textFieldName: 'Product Name',
-            hintTextField: 'Enter product name',
-            controller: _nameController,
-            validator: _requiredValidator,
-          ),
+  final source = ProductsRemoteDataSource(Dio());
+  bool loading = false;
+  String category = 'charms';
 
-          SharedTextField(
-            textFieldName: 'Description',
-            hintTextField: 'Enter product description',
-            controller: _descriptionController,
-            validator: _requiredValidator,
-          ),
+  Future<void> submit() async {
+    if (!formKey.currentState!.validate()) return;
 
-          SharedTextField(
-            textFieldName: 'Arabic Name',
-            hintTextField: 'Enter Arabic product name',
-            controller: _arabicNameController,
-            validator: _requiredValidator,
-          ),
+    setState(() => loading = true);
 
-          SharedTextField(
-            textFieldName: 'Arabic Description',
-            hintTextField: 'Enter Arabic description',
-            controller: _arabicDescriptionController,
-            validator: _requiredValidator,
-          ),
+    try {
+      await source.addProduct({
+        'sellerId': 'd051dbf3-f5d8-410d-0e50-08de06562562',
+        'name': name.text.trim(),
+        'description': description.text.trim(),
+        'arabicName': arabicName.text.trim(),
+        'arabicDescription': arabicDescription.text.trim(),
+        'productCode': productCode.text.trim(),
+        'color': color.text.trim(),
+        'coverPictureUrl': imageUrl.text.trim(),
+        'productPictures': null,
+        'price': double.parse(price.text),
+        'stock': int.parse(stock.text),
+        'weight': double.parse(weight.text),
+        'discountPercentage': 0,
+        'categories': [category],
+      });
 
-          SharedTextField(
-            textFieldName: 'Cover Picture URL',
-            hintTextField: 'Paste cover image URL',
-            controller: _coverPictureUrlController,
-            validator: _requiredValidator,
-          ),
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Product added successfully')),
+      );
+      Navigator.pop(context, true);
+    } on DioException catch (e) {
+      debugPrint('ADD PRODUCT ERROR: ${e.response?.data}');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed: ${e.response?.statusCode} - ${e.response?.data}'),
+          duration: const Duration(seconds: 5),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => loading = false);
+    }
+  }
 
-          SharedTextField(
-            textFieldName: 'Price',
-            hintTextField: 'Enter price',
-            controller: _priceController,
-            validator: _requiredValidator,
-          ),SharedTextField(
-            textFieldName: 'Stock',
-            hintTextField: 'Enter available quantity',
-            controller: _stockController,
-            validator: _requiredValidator,
-          ),
+  @override
+  void dispose() {
+    name.dispose();
+    description.dispose();
+    arabicName.dispose();
+    arabicDescription.dispose();
+    productCode.dispose();
+    color.dispose();
+    imageUrl.dispose();
+    price.dispose();
+    stock.dispose();
+    weight.dispose();
+    super.dispose();
+  }
 
-          SharedTextField(
-            textFieldName: 'Weight',
-            hintTextField: 'Enter weight',
-            controller: _weightController,
-            validator: _requiredValidator,
-          ),
-
-          SharedTextField(
-            textFieldName: 'Color',
-            hintTextField: 'Enter product color',
-            controller: _colorController,
-            validator: _requiredValidator,
-          ),
-
-          SharedTextField(
-            textFieldName: 'Discount Percentage',
-            hintTextField: 'Enter discount percentage',
-            controller: _discountController,
-            validator: _requiredValidator,
-          ),
-
-          SharedTextField(
-            textFieldName: 'Category IDs',
-            hintTextField: 'Enter category IDs separated by commas',
-            controller: _categoryIdsController,
-            validator: _requiredValidator,
-          ),
-
-          SharedTextField(
-            textFieldName: 'Product Picture URLs',
-            hintTextField: 'Enter image URLs separated by commas',
-            controller: _productPicturesController,
-            validator: _requiredValidator,
-          ),
-
-          const SizedBox(height: 15),
-
-          SharedButton(
-            buttonName: 'ADD PRODUCT',
-            onPressed: _submitForm,
-          ),
-
-          const SizedBox(height: 20),
-        ],
+  Widget field(String label, TextEditingController controller,
+      {bool numeric = false}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: TextFormField(
+        controller: controller,
+        keyboardType: numeric
+            ? const TextInputType.numberWithOptions(decimal: true)
+            : TextInputType.text,
+        decoration: InputDecoration(
+          labelText: label,
+          border: const OutlineInputBorder(),
+        ),
+        validator: (value) =>
+            value == null || value.trim().isEmpty ? 'Required' : null,
       ),
-    ),
-  ),
-);
-} }
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Add Product')),
+      body: Form(
+        key: formKey,
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            field('Product name', name),
+            field('Description', description),
+            field('Arabic name', arabicName),
+            field('Arabic description', arabicDescription),
+            field('Product code', productCode),
+            field('Color', color),
+            field('Cover image URL', imageUrl),
+            field('Price', price, numeric: true),
+            field('Stock', stock, numeric: true),
+            field('Weight', weight, numeric: true),
+            DropdownButtonFormField<String>(
+              value: category,
+              decoration: const InputDecoration(
+                labelText: 'Category',
+                border: OutlineInputBorder(),
+              ),
+              items: [
+                'charms',
+                'clothes',
+                'glasses',
+                'jewelry',
+                'bags',
+                'sneakers',
+                'watches',
+              ].map((value) => DropdownMenuItem(
+                    value: value,
+                    child: Text(value),
+                  )).toList(),
+              onChanged: (value) {
+                if (value != null) setState(() => category = value);
+              },
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: loading ? null : submit,
+              child: loading
+                  ? const CircularProgressIndicator()
+                  : const Text('Add Product'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

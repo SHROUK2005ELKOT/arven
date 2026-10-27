@@ -30,7 +30,8 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
 
   bool isLoading = false;
 
-  Future<void> verifyEmail() async {
+
+Future<void> verifyEmail() async {
   setState(() {
     isLoading = true;
   });
@@ -41,37 +42,35 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
       otp: otpController.text.trim(),
     );
 
-    final response =
-        await authRemoteDataSource.verifyEmail(model);
+    final response = await authRemoteDataSource.verifyEmail(model);
 
     log('Verify Email status: ${response.statusCode}');
+    log('Verify Email response: ${response.data}');
 
     if (!mounted) return;
 
-    if (response.statusCode == 200 ||
-    response.statusCode == 204) {
-  Navigator.pushNamedAndRemoveUntil(
-    context,
-    '/home',
-    (route) => false,
-  );
-}
-
-     
-    
+    if (response.statusCode == 200 || response.statusCode == 204) {
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        '/home',
+        (route) => false,
+      );
+    }
   } on DioException catch (e) {
     log('Verify Email error: ${e.response?.statusCode}');
     log('Verify Email response: ${e.response?.data}');
 
     if (!mounted) return;
 
-    final data = e.response?.data;
-    final message = data is Map
-        ? data['message']?.toString() ?? 'Verification failed'
-        : 'Verification failed. Please check your code.';
-
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
+      SnackBar(
+        content: Text(
+          e.response?.data is Map
+              ? e.response?.data['message']?.toString() ??
+                  'Verification failed'
+              : 'Verification failed. Please check your code.',
+        ),
+      ),
     );
   } catch (e, stackTrace) {
     log('Unexpected Verify Email error: $e');
@@ -93,7 +92,7 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
   }
 }
 
-
+ 
 Future<void> resendOtp() async {
   try {
     final response =
@@ -278,9 +277,11 @@ Future<void> resendOtp() async {
                     const SizedBox(height: 15),
 
                     TextButton(
-                      onPressed: () {
-                        resendOtp;
-                      },
+                    onPressed: isLoading
+    ? null
+    : () async {
+        await resendOtp();
+      },
                       child: Text(
                         'Resend Code',
                         style: AppTextStyles.text14Medium

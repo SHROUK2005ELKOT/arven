@@ -2,6 +2,7 @@
 import 'package:arven/core/utils/cache_helper.dart';
 import 'package:arven/features/auth/presentation/screens/login_screen.dart';
 import 'package:arven/features/auth/presentation/screens/register_screen.dart';
+import 'package:arven/features/products/presentation/screens%5D/category_screen.dart';
 import 'package:arven/features/products/presentation/screens%5D/home_screen.dart';
 import 'package:flutter/material.dart';
 

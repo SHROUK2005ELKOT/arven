@@ -4,6 +4,8 @@ import 'package:arven/core/widgets/custom_appbar.dart';
 import 'package:arven/features/products/data/data_source/remote_data_source.dart';
 import 'package:arven/features/products/presentation/cubit/home_cubit.dart';
 import 'package:arven/features/products/presentation/cubit/home_state.dart';
+import 'package:arven/features/products/presentation/screens%5D/add_product_screen.dart';
+import 'package:arven/features/products/presentation/screens%5D/category_screen.dart';
 import 'package:arven/features/products/presentation/widgets/home_card.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -29,6 +31,20 @@ class HomeView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: FloatingActionButton(
+  onPressed: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const AddProductScreen(),
+      ),
+    );
+  },
+  backgroundColor: Colors.black,
+  foregroundColor: Colors.white,
+  shape: const CircleBorder(),
+  child: const Icon(Icons.add),
+),
       appBar: CustomAppBar(),
       body: ListView(
         children: [
@@ -63,7 +79,10 @@ class HomeView extends StatelessWidget {
                           ),
                         ),
                         ElevatedButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            Navigator.push(context,MaterialPageRoute(
+                              builder: (context) => const CategoryScreen()) );
+                          },
                           child: Text(
                             'DISCOVER MORE',
                             style: AppTextStyles.text16Medium.copyWith(

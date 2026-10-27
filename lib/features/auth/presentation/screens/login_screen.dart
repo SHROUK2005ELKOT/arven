@@ -8,6 +8,7 @@ import 'package:arven/core/widgets/shared_text_field.dart';
 import 'package:arven/features/auth/data/data%20source/auth_remote_data_source.dart'; 
 import 'package:arven/features/auth/data/models/login_request_model.dart';
 import 'package:arven/features/auth/data/models/login_response_model.dart';
+import 'package:arven/features/auth/presentation/screens/register_screen.dart';
 import 'package:dio/dio.dart'; 
 import 'package:flutter/material.dart';
 class LoginScreen extends StatefulWidget {
@@ -21,13 +22,14 @@ final GlobalKey<FormState> myKey = GlobalKey<FormState>();
 final AuthRemoteDataSource authRemoteDataSource = AuthRemoteDataSource(Dio());
 bool isloading = false;
 
+
 Future<void> login() async {
   setState(() {
     isloading = true;
   });
 
   try {
-    final LoginRequestModel model = LoginRequestModel(
+    final model = LoginRequestModel(
       email: emailController.text.trim(),
       password: passwordController.text,
     );
@@ -37,12 +39,10 @@ Future<void> login() async {
     log('Login status: ${response.statusCode}');
     log('Login response: ${response.data}');
 
-    // تحويل الـ response لموديل
     final loginResponse = LoginResponseModel.fromJson(
       Map<String, dynamic>.from(response.data),
     );
 
-    // حفظ الـ tokens
     await CacheHelper.saveData(
       key: 'accessToken',
       value: loginResponse.accessToken,
@@ -57,26 +57,32 @@ Future<void> login() async {
 
     if (!mounted) return;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Login successful'),
-      ),
-    );
-
+Navigator.pushNamedAndRemoveUntil(
+  context,
+  '/home',
+  (route) => false,
+);
   } on DioException catch (e) {
-    log('Login error: ${e.response?.data ?? e.message}');
+    log('Login status: ${e.response?.statusCode}');
+    log('Login response data: ${e.response?.data}');
 
     if (!mounted) return;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Login failed'),
-      ),
-    );
+    final responseData = e.response?.data;
+    String errorMessage = 'Login failed';
 
+    if (responseData is Map) {
+      errorMessage = responseData['message']?.toString() ??
+          responseData['title']?.toString() ??
+          'Login failed';
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(errorMessage)),
+    );
   } catch (e, stackTrace) {
     log('Login error: $e');
-    log('$stackTrace');
+    log('Login stack trace: $stackTrace');
 
     if (!mounted) return;
 
@@ -85,7 +91,6 @@ Future<void> login() async {
         content: Text('Something went wrong'),
       ),
     );
-
   } finally {
     if (mounted) {
       setState(() {
@@ -94,6 +99,7 @@ Future<void> login() async {
     }
   }
 }
+
 @override void dispose() { emailController.dispose(); passwordController.dispose(); super.dispose(); }
 @override Widget build(BuildContext context) { return SafeArea( child: Scaffold( appBar: AppBar( title: Text( 'ARVEN', style: AppTextStyles.text32Medium.copyWith( color: AppColors.textprimary, ), ), ), body: SizedBox( width: double.infinity, child: Form( key: myKey, child: Column( crossAxisAlignment: CrossAxisAlignment.center, children: [ const SizedBox(height: 70),
             Text(
@@ -170,7 +176,8 @@ Future<void> login() async {
 
             TextButton(
               onPressed: () {
-                // هنربطه بشاشة Register بعدين.
+                Navigator.pushReplacement(context, MaterialPageRoute(
+                        builder: (context)=> const RegisterScreen()));
               },
               child: Text(
                 'Create Account',

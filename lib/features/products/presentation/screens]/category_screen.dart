@@ -19,7 +19,8 @@ class CategoryView extends StatelessWidget {
   const CategoryView({super.key});
 @override Widget build(BuildContext context) {
    return SafeArea( child: Scaffold( 
-    appBar: CustomAppBar(),
+    appBar: const CustomAppBar(showBackButton: true),
+    
      body: BlocBuilder<CategoryCubit, CategoryState>( builder: (context, state) { 
       if (state is CategoryInitial || state is CategoryLoading) {
 
